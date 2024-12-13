@@ -1,6 +1,6 @@
 from osbrain import run_nameserver, run_agent
-from operator import Operator
-# from merchant import Merchant
+from operator_code import Operator
+from merchant_code import Merchant
 import time
 
 def main():
@@ -21,9 +21,16 @@ def main():
     operator = run_agent('Operator', base=Operator)
     operator.setup_products(num_fishes)
 
+    # Crear y configurar comerciantes
+    for i in range(1, num_merchants + 1):
+        merchant_name = f'Merchant-{i}'
+        merchant = run_agent(merchant_name, base=Merchant)
+        merchant.setup_preferences(preference_type, probabilities=[0.5, 0.3, 0.2])
+        merchant.connect(operator.addr('publish_channel'), handler='on_new_product')
+
     # Simulación de la subasta
-    while operator.products or operator.current_product:
-        if not operator.current_product:
+    while operator.get_products() or operator.get_current_product():
+        if not operator.get_current_product():
             operator.send_new_product()
         else:
             time.sleep(1)  # Simular tiempo entre reducciones de precio
