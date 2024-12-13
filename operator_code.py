@@ -20,6 +20,7 @@ class Operator(Agent):
         self.min_price = 4  # Precio mínimo para vender un producto
         self.log = []       # Registro de ventas
 
+
     def get_products(self):
         return self.products
     
@@ -36,10 +37,17 @@ class Operator(Agent):
     def send_new_product(self):
         # Send a new product to the merchants subscribed
         if self.products:
-            self.current_product = self.products.pop(0)
+            new_product = self.products.pop(0)
+            self.current_product = Product(new_product.product_number, new_product.product_type, 
+                                           new_product.price, new_product.min_price)
+            
             self.log_info(f"New product: {self.current_product}")
             # Enviamos un mensaje de New Product y el producto actual
-            self.send('publish_channel', {"msg": "New Product", "product": self.current_product, "merchant_id": None})
+            self.send('publish_channel', {"msg": "New Product", "product": {"product_number": self.current_product.product_number,
+                                                                             "product_type": self.current_product.product_type,
+                                                                             "price": self.current_product.price,
+                                                                             "min_price": self.current_product.min_price}
+                                          , "merchant_id": None})
         else:
             self.log_info("No more products available.")
             self.current_product = None
@@ -50,24 +58,38 @@ class Operator(Agent):
             product_functional = self.current_product.reduce_price()
             if product_functional:
                 self.log_info(f"Reducing price: {self.current_product}")
-                self.send('publish_channel', {"msg": "Price Reduced", "product": self.current_product, "merchant_id": None})
+                self.send('publish_channel', {"msg": "Price Reduced", "product": {
+                    "product_number": product_functional.product_number,
+                    "product_type": product_functional.product_type,
+                    "price": product_functional.price,
+                    "min_price": product_functional.min_price
+                }, "merchant_id": None})
             else:
                 self.log_info(f"Product {self.current_product.product_number} reached minimum price and is unsold.")
                 self.current_product = None
 
     def handle_sale(self, message):
         msg = message.get("msg")
-        product = message.get("product")
+        product = Product(**message.get("product"))
+        
         merchant_id = message.get("merchant_id")
 
         if msg == "Yes":
             # Si el operador recibe una confirmación de venta, registra la venta
-            self.log.append({"product number": product.product_number, "product type": product.product_type, "sell price": product.price, "merchant": merchant_id})
+            self.log.append({"product number": product.product_number, 
+                             "product type": product.product_type, 
+                             "sell price": product.price, 
+                             "merchant": merchant_id})
 
             self.log_info(f"Product sold: {product.product_number} to Merchant {merchant_id}")
             
             # Enviar mensaje a los comerciantes para que dejen de ofertar
-            self.send(f'publish_channel', {"msg": "Product Sold", "product": product, "merchant_id": merchant_id})
+            self.send('publish_channel', {"msg": "Product Sold", "product": {
+                "product_number": product.product_number,
+                "product_type": product.product_type,
+                "price": product.price,
+                "min_price": product.min_price
+            }, "merchant_id": merchant_id})
             
             # Limpiar el producto actual
             self.current_product = None

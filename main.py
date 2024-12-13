@@ -27,6 +27,8 @@ def main():
         merchant = run_agent(merchant_name, base=Merchant)
         merchant.setup_preferences(preference_type, probabilities=[0.5, 0.3, 0.2])
         merchant.connect(operator.addr('publish_channel'), handler='on_new_product')
+        merchant.bind('PUSH', alias='response_channel_' + str(i))
+        operator.connect(merchant.addr('response_channel_' + str(i)), handler='handle_sale')
 
     # Simulación de la subasta
     while operator.get_products() or operator.get_current_product():
