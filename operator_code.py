@@ -3,11 +3,11 @@ from datetime import datetime
 from osbrain import Agent
 import random
 from product import Product
+import threading
 
 # Configuramos los mensajes en formato JSON
 import osbrain
 osbrain.config['SERIALIZER'] = 'json'
-
 class Operator(Agent):
     def on_init(self):
         # Crear un canal de publicación
@@ -19,7 +19,18 @@ class Operator(Agent):
         self.current_product = None
         self.min_price = 4  # Precio mínimo para vender un producto
         self.log = []       # Registro de ventas
+        self.timer = None   # Timer para reducir el precio
 
+    def start_timer(self):
+        if self.timer:
+            self.timer.cancel()
+        self.timer = threading.Timer(1.0, self.reduce_price)
+        self.timer.start()
+
+    def stop_timer(self, alias=None):
+        if self.timer:
+            self.timer.cancel()
+            self.timer = None
 
     def get_products(self):
         return self.products
@@ -35,6 +46,7 @@ class Operator(Agent):
             self.products.append(product)
         
     def send_new_product(self):
+        
         # Send a new product to the merchants subscribed
         if self.products:
             new_product = self.products.pop(0)
@@ -48,11 +60,14 @@ class Operator(Agent):
                                                                              "price": self.current_product.price,
                                                                              "min_price": self.current_product.min_price}
                                           , "merchant_id": None})
+            
+            self.start_timer()
         else:
             self.log_info("No more products available.")
             self.current_product = None
 
     def reduce_price(self):
+        self.stop_timer()
         # If the product is not sold, reduce the price by 5 (for now, we'll change this later)
         if self.current_product:
             product_functional = self.current_product.reduce_price()
@@ -64,11 +79,20 @@ class Operator(Agent):
                     "price": product_functional.price,
                     "min_price": product_functional.min_price
                 }, "merchant_id": None})
+                self.start_timer()
             else:
                 self.log_info(f"Product {self.current_product.product_number} reached minimum price and is unsold.")
                 self.current_product = None
+                self.stop_timer()
 
     def handle_sale(self, message):
+        if self.timer:
+            self.stop_timer()
+
+        if not self.current_product:
+            self.log_info(f"There is no product to sell to Merchater {message.get('merchant_id')}")
+            return
+
         msg = message.get("msg")
         product = Product(**message.get("product"))
         

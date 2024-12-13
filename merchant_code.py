@@ -45,6 +45,7 @@ class Merchant(Agent):
                 self.buy_product(product)
             elif self.fishes_owned[product.product_type] == 0:  # Necesita al menos uno de cada tipo
                 self.buy_product(product)
+                
 
     def buy_product(self, product: Product):
         # Buy the product and send a confirmation to the operator

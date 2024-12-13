@@ -2,6 +2,7 @@ from osbrain import run_nameserver, run_agent
 from operator_code import Operator
 from merchant_code import Merchant
 import time
+import threading
 
 def main():
     # Configuración inicial
@@ -30,13 +31,11 @@ def main():
         merchant.bind('PUSH', alias='response_channel_' + str(i))
         operator.connect(merchant.addr('response_channel_' + str(i)), handler='handle_sale')
 
-    # Simulación de la subasta
+
     while operator.get_products() or operator.get_current_product():
+        
         if not operator.get_current_product():
             operator.send_new_product()
-        else:
-            time.sleep(1)  # Simular tiempo entre reducciones de precio
-            operator.reduce_price()
 
     # Guardar logs
     operator.save_logs()
