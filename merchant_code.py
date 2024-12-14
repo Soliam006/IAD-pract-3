@@ -9,6 +9,12 @@ class Merchant(Agent):
         self.preference = None
         self.fishes_owned = {"H": 0, "S": 0, "T": 0}  # Pescados adquiridos por tipo
 
+    def get_budget(self):
+        return self.budget
+    
+    def get_preference(self):
+        return self.preference
+
     def setup_preferences(self, preference_type, probabilities=None):
         # Set up the merchant's preferences
         if preference_type == 'R':
@@ -30,6 +36,8 @@ class Merchant(Agent):
 
         if merchan_id != None and merchan_id == self.name.split("-")[1]:
             self.log_info(f"I bought this product: {product.product_number}")
+            self.budget -= product.price
+            self.fishes_owned[product.product_type] += 1
             return # No comprar el producto que ya se ha comprado
         
         if msg == "Product Sold":
@@ -49,8 +57,6 @@ class Merchant(Agent):
 
     def buy_product(self, product: Product):
         # Buy the product and send a confirmation to the operator
-        self.budget -= product.price
-        self.fishes_owned[product.product_type] += 1
         self.log_info(f"I want buy this product: {product}")
 
         # Enviar mensaje de confirmación al operador

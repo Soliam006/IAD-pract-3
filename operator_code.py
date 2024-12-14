@@ -17,7 +17,7 @@ class Operator(Agent):
         # Parámetros de la subasta
         self.products = []
         self.current_product = None
-        self.min_price = 4  # Precio mínimo para vender un producto
+        self.min_price = 2  # Precio mínimo para vender un producto
         self.log = []       # Registro de ventas
         self.timer = None   # Timer para reducir el precio
 
@@ -42,7 +42,7 @@ class Operator(Agent):
         # Product List with random prices within (20, 50)
         product_types = ['H', 'S', 'T']  # Hake, Sole, Tuna
         for i in range(1, num_products + 1):
-            product = Product(i, random.choice(product_types), random.randint(20, 50), self.min_price)
+            product = Product(i, random.choice(product_types), random.randint(10, 25), self.min_price)
             self.products.append(product)
         
     def send_new_product(self):
@@ -73,7 +73,7 @@ class Operator(Agent):
             product_functional = self.current_product.reduce_price()
             if product_functional:
                 self.log_info(f"Reducing price: {self.current_product}")
-                self.send('publish_channel', {"msg": "Price Reduced", "product": {
+                self.send('publish_channel', {"msg": "Reducing price", "product": {
                     "product_number": product_functional.product_number,
                     "product_type": product_functional.product_type,
                     "price": product_functional.price,
@@ -122,12 +122,8 @@ class Operator(Agent):
     def save_logs(self):
         # Save the setup and log files when the auction is over
         date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-        with open(f"setup_{date_str}.csv", "w", newline="") as setup_file:
-            writer = csv.DictWriter(setup_file, fieldnames=["product number", "product type", "price", "min_price"])
-            writer.writeheader()
-            writer.writerows(self.products)
         
-        with open(f"log_{date_str}.csv", "w", newline="") as log_file:
+        with open(f"logs/log_{date_str}.csv", "w", newline="") as log_file:
             writer = csv.DictWriter(log_file, fieldnames=["product number", "product type", "sell price", "merchant"])
             writer.writeheader()
             writer.writerows(self.log)

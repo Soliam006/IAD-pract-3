@@ -12,7 +12,7 @@ class Product:
 
     def reduce_price(self):
         # If the product is not sold, reduce the price by 5 (for now, we'll change this later)
-        self.price -= 5
+        self.price -= 1.2
         if self.price >= self.min_price:
             return self
         else:
