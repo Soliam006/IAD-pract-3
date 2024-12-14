@@ -1,4 +1,5 @@
 # Product interface:
+import random 
 
 class Product:
     def __init__(self, product_number, product_type, price, min_price):
@@ -11,8 +12,8 @@ class Product:
         return f"Product {self.product_number}: {self.product_type} - Price: {self.price} - Min Price: {self.min_price}"
 
     def reduce_price(self):
-        # If the product is not sold, reduce the price by 5 (for now, we'll change this later)
-        self.price -= 1.2
+        # If the product is not sold, reduce the price randomly (for now, we'll change this later)
+        self.price = round(self.price - random.uniform(1, 4), 2)
         if self.price >= self.min_price:
             return self
         else:

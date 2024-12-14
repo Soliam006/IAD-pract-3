@@ -17,7 +17,7 @@ class Operator(Agent):
         # Parámetros de la subasta
         self.products = []
         self.current_product = None
-        self.min_price = 2  # Precio mínimo para vender un producto
+        self.min_price = 4  # Precio mínimo para vender un producto
         self.log = []       # Registro de ventas
         self.timer = None   # Timer para reducir el precio
 
@@ -38,13 +38,21 @@ class Operator(Agent):
     def get_current_product(self):
         return self.current_product
     
+    def get_min_price_product(self):
+        if self.current_product:
+            return self.current_product.min_price
+        else:
+            return 0
+    
     def setup_products(self, num_products):
         # Product List with random prices within (20, 50)
         product_types = ['H', 'S', 'T']  # Hake, Sole, Tuna
         for i in range(1, num_products + 1):
             product = Product(i, random.choice(product_types), random.randint(10, 25), self.min_price)
             self.products.append(product)
-        
+
+    def log_infos(self, msg):
+        self.log_info(msg)  
     def send_new_product(self):
         
         # Send a new product to the merchants subscribed

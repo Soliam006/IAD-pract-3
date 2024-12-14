@@ -5,7 +5,7 @@ from product import Product
 class Merchant(Agent):
     def on_init(self):
         # Configuración inicial del comerciante
-        self.budget = 100
+        self.budget = 30
         self.preference = None
         self.fishes_owned = {"H": 0, "S": 0, "T": 0}  # Pescados adquiridos por tipo
 
@@ -14,6 +14,9 @@ class Merchant(Agent):
     
     def get_preference(self):
         return self.preference
+    
+    def get_name(self):
+        return self.name
 
     def setup_preferences(self, preference_type, probabilities=None):
         # Set up the merchant's preferences
@@ -49,7 +52,7 @@ class Merchant(Agent):
 
         # Decidir si comprar
         if self.budget >= product.price:
-            if product.product_type == self.preference or self.fishes_owned[product.product_type] == 0:
+            if product.product_type == self.preference:
                 self.buy_product(product)
             elif self.fishes_owned[product.product_type] == 0:  # Necesita al menos uno de cada tipo
                 self.buy_product(product)
